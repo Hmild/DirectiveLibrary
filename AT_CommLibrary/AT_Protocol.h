@@ -27,9 +27,13 @@ void AT_Protocol_DeviceState_Task(void);
 /* 协议菜单状态枚举 */
 typedef enum
 {
+	/* 协议菜单内的指令超出范围 */
 	AT_PROTOCOL_MENU_EXCEED = 0,
+	
+	/* 指针参数非法,例如 NULL */
 	AT_PROTOCOL_MENU_PARAM_DEFAULT,
 	
+	/* 共用的成功状态 */
 	AT_PROTOCOL_MENU_SUCCEED,
 
 }AT_Protocol_MenuState_t;
@@ -90,7 +94,7 @@ uint8_t AT_Protocol_SendQueue_Enqueue(uint32_t directive_index, uint8_t port);
 /* 网络模块参数类型 */
 typedef struct
 {
-	char *send_cmd;				//模块发送数据前的发布指令,						默认 "AT+QISEND=0,%d\r\n"
+	char *send_cmd;				// 模块发送数据前的发布指令,					默认 "AT+QISEND=0,%d\r\n"
 	char *recv_urc;				// 模块接收到服务器消息后上报的 URC, 	默认 "+QIURC: \"recv\""
 	uint16_t send_max_len;// 模块单次发送的最大数据量, 					默认 1440
 
@@ -138,6 +142,7 @@ void AT_Protocol_BeatTimeoutThreshold_Set(uint32_t value);
 						* Once_Ref: 0.00001057s(基准频率下重试1次的时间)
 						* 计算不同频率下单次重试时间公式: Once_Now  = Once_Ref * (Freq_Ref / Freq_Now)
 					  * 总时间公式: SumTime = Once_Now * value,单位s
+						(由 AT_Protocol_Task 函数的扫描周期决定)
   * @param  value: 0 - uint32_t 最大值 默认 0x000EFFFF
   * @retval 
   */

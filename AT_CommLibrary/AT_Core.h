@@ -14,7 +14,7 @@ typedef struct
 
 }AT_Core_SerialBuf_t;
 
-/* 传入 AT_Core_SerialBuf_t 类型的变量配置内部缓冲区指针 */
+/* 传入 AT_Core_SerialBuf_t 类型的指针配置内部缓冲区指针 */
 void AT_Core_SerialBuf_Config(AT_Core_SerialBuf_t *serial_buf_cfg);
 
 
