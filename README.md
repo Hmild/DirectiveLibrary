@@ -1,3 +1,4 @@
 # DirectiveLibrary
-通用的指令收发库, 包括但不限于AT指令, 协议指令;
+AT_CommLibrary: 单实例命令库;
+CMD_Library : 多实例命令库
 批注: 详细内容查看文件内的数据手册
