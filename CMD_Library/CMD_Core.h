@@ -17,7 +17,7 @@ typedef void * CMD_Core_Handle_t;
 
 
 /* 每个句柄的接收帧队列数量 */
-#define CMD_CORE_RECV_FRAME_QUEUE_COUNT					15
+#define CMD_CORE_RECV_FRAME_QUEUE_LEN						15
 
 
 
@@ -55,7 +55,7 @@ typedef struct
   * @param  cfg:		CMD_Core_Param_t 类型的指针
   * @retval CMD_Core_State_t: CMD_CORE_OK, CMD_CORE_ERR_PARAM, CMD_CORE_STATE_FULL
   */
-CMD_Core_State_t CMD_Core_SerialHandle_Create(CMD_Core_Handle_t *handle, CMD_Core_Param_t *cfg);
+CMD_Core_State_t CMD_Core_Handle_Create(CMD_Core_Handle_t *handle, CMD_Core_Param_t *cfg);
 
 
 
@@ -65,7 +65,7 @@ CMD_Core_State_t CMD_Core_SerialHandle_Create(CMD_Core_Handle_t *handle, CMD_Cor
   * @param  handle: CMD_Core_Handle_t 类型的指针
   * @retval CMD_Core_State_t: CMD_CORE_OK, CMD_CORE_ERR_PARAM, CMD_CORE_ERR_FREE
   */
-CMD_Core_State_t CMD_Core_SerialHandle_Delete(CMD_Core_Handle_t *handle);
+CMD_Core_State_t CMD_Core_Handle_Delete(CMD_Core_Handle_t *handle);
 
 
 

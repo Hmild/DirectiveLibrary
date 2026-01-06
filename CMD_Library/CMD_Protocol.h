@@ -20,12 +20,12 @@ typedef void * CMD_Protocol_Handle_t;
 #define CMD_PROTOCOL_MENU_ELEMENT_COUNT			15
 
 
-/* 每个句柄协议连包处理最大次数 */
-#define CMD_PROTOCOL_LINK_BAG_MAX						3
+/* 每个句柄协议连包处理数量 */
+#define CMD_PROTOCOL_LINK_BAG_COUNT					3
 
 
-/* 每个句柄协议发送任务队列大小 */
-#define CMD_PROTOCOL_SEND_TASK_QUEUE_MAX		15
+/* 每个句柄协议发送任务队列数量 */
+#define CMD_PROTOCOL_SEND_QUEUE_LEN					15
 
 
 
@@ -56,24 +56,21 @@ typedef struct
 	void			 (*module_send_func)(const char *string, uint32_t length);	// 发送定长数据函数
 	
 	const char *module_publish_cmd;															// 模块发送数据前的发布指令, 例如 "AT+QISEND=0,%d\r\n" 												"选配"
-	const char *module_publish_prompt;													// 模块内部发送窗口打开响应的数据, 例如 发送完 "AT+QISEND...", 模块响应 '>' 	"选配"
+	const char *module_publish_prompt;													// 模块内部发送窗口打开响应的数据, 例如 发送完 "AT+QISEND...", 模块响应 '>'		"选配"
 	void 			 (*module_publish_func)(const char *string, ...);	// 格式符函数, 内部用来发送格式符数据 																				"选配"
-	void 			 (*user_func)(char *frame);												// 用户可自定义处理数据的函数, 参数 frame 是每一包数据的起始地址指针 	"选配"
+	void 			 (*user_func)(char *frame);												// 用户可自定义处理数据的函数, 参数 frame 是每一包数据的起始地址指针 					"选配"
 
 }CMD_Protocol_Param_t;
 
 
 
-/* 	
-	结合体, 用户在使用发送队列入队函数的时候, 可以指定数据, 这个数据会传递到用户的 build 函数上,
-不过在使用指针类型的时候要注意生命周期, 因为不是调用完入队函数就立马开始发送
-*/
+/* 结合体, 用户在调用 CMD_Protocol_SendQueue_Enqueue(发送队列入队函数) 的时候, 可以指定数据, 这个数据会传递到用户对应的 build 函数上, 不过在使用指针类型的时候要注意生命周期, 因为不是调用完入队函数就立马开始发送 */
 typedef union
 {
-	uint32_t u32;
-	float		 f;
-	void *	 ptr;
-	void		(*func)(void);
+	uint32_t value_u32;
+	float		 value_f;
+	void *	 value_ptr;
+	void		(*value_func)(void);
 
 }CMD_Protocol_SendQueue_Arg_t;
 
@@ -132,7 +129,7 @@ CMD_Protocol_State_t CMD_Protocol_Task(CMD_Protocol_Handle_t handle);
 								
 								CMD_Protocol_SendPacket_Write(数据包起始地址指针, 数据包长度); // 将数据包起始地址跟长度传给发送任务状态机, 构建的任务就完成了(该值不可以是局部的);
 							}
-							注意: 无需指定数据的指令, 就不需要使用 assign_data, assin_data 是用户在调用协议发送队列入队函数中的第3个参数 ;
+							注意: 无需指定数据的指令, 函数内可以不使用 assign_data, 其是用户在调用 CMD_Protocol_SendQueue_Enqueue (协议发送队列入队函数)中的第3个参数;
 
 	* @param  char *(*parse_func)(char *directive_tag_addr): 解析平台下发(回复)函数 "选配"
 
@@ -153,7 +150,7 @@ CMD_Protocol_State_t CMD_Protocol_Directive_Add(CMD_Protocol_Handle_t handle, ui
   * @note   主循环扫描, 建议网络在线后在调用
   * @param  handle: 			CMD_Protocol_Handle_t 类型
   * @param  directive_idx:协议指令索引
-  * @param  assign_data:	指定数据, 可以指定端口
+  * @param  assign_data:	CMD_Protocol_SendQueue_Arg_t 类型, 可以指定数据, 例如端口
   * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_STATE_FULL
   */
 CMD_Protocol_State_t CMD_Protocol_SendQueue_Enqueue(CMD_Protocol_Handle_t handle, uint32_t directive_idx, CMD_Protocol_SendQueue_Arg_t assign_data);
