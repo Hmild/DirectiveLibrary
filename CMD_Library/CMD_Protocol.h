@@ -9,7 +9,7 @@
 
 
 /* 协议层句柄类型 */
-typedef void * CMD_Protocol_Handle_t;
+typedef struct Protocol * CMD_Protocol_Handle_t;
 
 
 /* 协议层句柄数量 */
@@ -36,6 +36,7 @@ typedef enum
 	CMD_PROTOCOL_ERR_PARAM,			// 错误参数
 	CMD_PROTOCOL_ERR_FREE,			// 重复删除
 	CMD_PROTOCOL_ERR_TIMEOUT,		// 错误超时
+	CMD_PROTOCOL_ERR_BUILD,			// 错误构建
 	
 	CMD_PROTOCOL_STATE_FULL,		// 状态满
 	CMD_PROTOCOL_STATE_IDLE,		// 状态空闲
@@ -79,31 +80,31 @@ typedef union
 /**
   * @brief  协议层句柄创建
   * @note   只有创建句柄跟删除句柄需要传入二级指针, 其余接口函数可直接使用句柄操作
-  * @param  handle: CMD_Protocol_Handle_t 类型的指针
-  * @param  cfg:		CMD_Protocol_Param_t  类型的指针
+  * @param  protocol_handle:CMD_Protocol_Handle_t 类型的指针
+  * @param  cfg:						CMD_Protocol_Param_t  类型的指针
   * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_STATE_FULL
   */
-CMD_Protocol_State_t CMD_Protocol_Handle_Create(CMD_Protocol_Handle_t *handle, CMD_Protocol_Param_t *cfg);
+CMD_Protocol_State_t CMD_Protocol_Handle_Create(CMD_Protocol_Handle_t *protocol_handle, CMD_Protocol_Param_t *cfg);
 
 
 
 /**
   * @brief  协议层句柄删除
   * @note   删除后的句柄将指向 NULL
-  * @param  handle: CMD_Protocol_Handle_t 类型的指针
+  * @param  protocol_handle: CMD_Protocol_Handle_t 类型的指针
   * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_ERR_FREE
   */
-CMD_Protocol_State_t CMD_Protocol_Handle_Delete(CMD_Protocol_Handle_t *handle);
+CMD_Protocol_State_t CMD_Protocol_Handle_Delete(CMD_Protocol_Handle_t *protocol_handle);
 
 
 
 /**
   * @brief  协议任务
   * @note   主循环扫描, 该函数会返回协议发送状态机的状态, 注意: 该函数返回 CMD_PROTOCOL_ERR_TIMEOUT 发送超时后, 超时的任务会保存, 转而进行重新发送, 所以用户可以让此函数在在线状态下运行, 超时后立马置网络状态为离线
-  * @param  handle: CMD_Protocol_Handle_t 类型
-  * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_STATE_BUSY, CMD_PROTOCOL_STATE_IDLE, CMD_PROTOCOL_ERR_TIMEOUT
+  * @param  protocol_handle: CMD_Protocol_Handle_t 类型
+  * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_ERR_BUILD, CMD_PROTOCOL_ERR_TIMEOUT, CMD_PROTOCOL_STATE_BUSY, CMD_PROTOCOL_STATE_IDLE, 
   */
-CMD_Protocol_State_t CMD_Protocol_Task(CMD_Protocol_Handle_t handle);
+CMD_Protocol_State_t CMD_Protocol_Task(CMD_Protocol_Handle_t protocol_handle);
 
 
 
@@ -117,9 +118,9 @@ CMD_Protocol_State_t CMD_Protocol_Task(CMD_Protocol_Handle_t handle);
 
 							相同的 directive_idx 可以覆盖, 故协议层没有删除协议指令函数, 网络层添加相同的指令标识会返回重复
 
-  * @param  handle: CMD_Protocol_Handle_t 类型
+  * @param  protocol_handle:CMD_Protocol_Handle_t 类型
 
-	* @param  directive_idx: 协议指令索引, 范围 0 - CMD_PROTOCOL_MENU_ELEMENT_COUNT;
+	* @param  directive_idx: 	协议指令索引, 范围 0 - CMD_PROTOCOL_MENU_ELEMENT_COUNT;
 
 	* @param  void(*build_func)(CMD_Protocol_SendQueue_Arg_t assign_data): 构建协议指令函数,示例代码如下;
 							
@@ -139,33 +140,33 @@ CMD_Protocol_State_t CMD_Protocol_Task(CMD_Protocol_Handle_t handle);
 
   * @param  directive_tag: 							需要识别的指令标签,例如: "EBCharge", 无需校验则填 NULL, "选配"
 
-  * @retval CMD_Protocol_State_t: 			CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_STATE_FULL
+  * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_STATE_FULL
   */
-CMD_Protocol_State_t CMD_Protocol_Directive_Add(CMD_Protocol_Handle_t handle, uint32_t directive_idx, void(*build_func)(CMD_Protocol_SendQueue_Arg_t assign_data), char *(*parse_func)(char *directive_tag_addr), char *directive_tag);
+CMD_Protocol_State_t CMD_Protocol_Directive_Add(CMD_Protocol_Handle_t protocol_handle, uint32_t directive_idx, void(*build_func)(CMD_Protocol_SendQueue_Arg_t assign_data), char *(*parse_func)(char *directive_tag_addr), char *directive_tag);
 
 
 
 /**
   * @brief  协议发送队列入队
   * @note   主循环扫描, 建议网络在线后在调用
-  * @param  handle: 			CMD_Protocol_Handle_t 类型
-  * @param  directive_idx:协议指令索引
-  * @param  assign_data:	CMD_Protocol_SendQueue_Arg_t 类型, 可以指定数据, 例如端口
+  * @param  protocol_handle:CMD_Protocol_Handle_t 类型
+  * @param  directive_idx:	协议指令索引
+  * @param  assign_data:		CMD_Protocol_SendQueue_Arg_t 类型, 可以指定数据, 例如端口
   * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_STATE_FULL
   */
-CMD_Protocol_State_t CMD_Protocol_SendQueue_Enqueue(CMD_Protocol_Handle_t handle, uint32_t directive_idx, CMD_Protocol_SendQueue_Arg_t assign_data);
+CMD_Protocol_State_t CMD_Protocol_SendQueue_Enqueue(CMD_Protocol_Handle_t protocol_handle, uint32_t directive_idx, CMD_Protocol_SendQueue_Arg_t assign_data);
 
 
 
 /**
 	* @brief  协议发送状态机写数据包起始地址跟长度
-  * @note   在构建协议指令函数中, 构建完成后, 需要调用此函数将数据包起始地址跟长度传给发送状态机
-  * @param  handle: 		CMD_Protocol_Handle_t 类型
-  * @param  packet_addr:数据包起始地址指针
-  * @param  packet_len:	数据包长度
-  * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM
+	* @note   在构建协议指令数据包函数中使用(如果不在构建函数中使用, 会返回 CMD_PROTOCOL_ERR_BUILD )
+  * @param  protocol_handle:CMD_Protocol_Handle_t 类型
+  * @param  packet_addr:		数据包起始地址指针
+  * @param  packet_len:			数据包长度
+  * @retval CMD_Protocol_State_t: CMD_PROTOCOL_OK, CMD_PROTOCOL_ERR_PARAM, CMD_PROTOCOL_ERR_BUILD
   */
-CMD_Protocol_State_t CMD_Protocol_SendPacket_Write(CMD_Protocol_Handle_t handle, char *packet_addr, uint32_t packet_len);
+CMD_Protocol_State_t CMD_Protocol_SendPacket_Write(CMD_Protocol_Handle_t protocol_handle, char *packet_addr, uint32_t packet_len);
 
 
 

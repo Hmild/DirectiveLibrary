@@ -9,15 +9,15 @@
 
 
 /* 核心层句柄类型 */
-typedef void * CMD_Core_Handle_t;
+typedef struct Core * CMD_Core_Handle_t;
 
 
 /* 核心层句柄数量 */
-#define CMD_CORE_SERIAL_MEMPOOL_ELEMENT_COUNT		3
+#define CMD_CORE_MEMPOOL_ELEMENT_COUNT		3
 
 
 /* 每个句柄的接收帧队列数量 */
-#define CMD_CORE_RECV_FRAME_QUEUE_LEN						15
+#define CMD_CORE_RECV_FRAME_QUEUE_LEN			15
 
 
 
@@ -51,31 +51,31 @@ typedef struct
 /**
   * @brief  核心层句柄创建
   * @note   只有创建句柄跟删除句柄需要传入二级指针, 其余接口函数可直接使用句柄操作
-  * @param  handle: CMD_Core_Handle_t 类型的指针
-  * @param  cfg:		CMD_Core_Param_t 类型的指针
+  * @param  core_handle: 			CMD_Core_Handle_t 类型的指针
+  * @param  cfg:							CMD_Core_Param_t 类型的指针
   * @retval CMD_Core_State_t: CMD_CORE_OK, CMD_CORE_ERR_PARAM, CMD_CORE_STATE_FULL
   */
-CMD_Core_State_t CMD_Core_Handle_Create(CMD_Core_Handle_t *handle, CMD_Core_Param_t *cfg);
+CMD_Core_State_t CMD_Core_Handle_Create(CMD_Core_Handle_t *core_handle, CMD_Core_Param_t *cfg);
 
 
 
 /**
   * @brief  核心层句柄删除
   * @note   删除后的句柄将指向 NULL
-  * @param  handle: CMD_Core_Handle_t 类型的指针
+  * @param  core_handle: 			CMD_Core_Handle_t 类型的指针
   * @retval CMD_Core_State_t: CMD_CORE_OK, CMD_CORE_ERR_PARAM, CMD_CORE_ERR_FREE
   */
-CMD_Core_State_t CMD_Core_Handle_Delete(CMD_Core_Handle_t *handle);
+CMD_Core_State_t CMD_Core_Handle_Delete(CMD_Core_Handle_t *core_handle);
 
 
 
 /**
   * @brief  串行口接收超时任务
   * @note   建议放入1ms执行1次的任务区
-  * @param  handle: CMD_Core_Handle_t 类型的指针
+  * @param  core_handle: 			CMD_Core_Handle_t 类型的指针
   * @retval CMD_Core_State_t: CMD_CORE_OK, CMD_CORE_ERR_PARAM, CMD_CORE_STATE_FULL(接收帧队列满会返回)
   */
-CMD_Core_State_t CMD_Core_SerialRecvTimeout_Task(CMD_Core_Handle_t handle);
+CMD_Core_State_t CMD_Core_SerialRecvTimeout_Task(CMD_Core_Handle_t core_handle);
 
 
 
